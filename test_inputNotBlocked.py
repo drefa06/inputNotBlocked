@@ -3,12 +3,11 @@ if __name__ == "__main__":
     import __init__
 
 import unittest
-
-from lib import inputNonBlocking
+import inputNotBlocked
 
 import sys,time
 
-class inputNonBlockingTest(unittest.TestCase):
+class inputNotBlockedTest(unittest.TestCase):
 
     def setUp(self):
         pass
@@ -16,18 +15,36 @@ class inputNonBlockingTest(unittest.TestCase):
     def tearDown(self):
         pass
 
-    def _try(self,testStr):
+    def _try_inputNotBlocked(self,testStr):
         inputStr = -1
         start = time.time()
         while True:
-            inputStr = inputNonBlocking.Input('')
+            inputStr = inputNotBlocked.Input('')
+
+            if inputStr != None:
+                print("Read: {}".format(inputStr))
+                self.assertEqual(inputStr, testStr)
+                break
+
+            if time.time() - start >= 5:
+                inputStr = inputNotBlocked.interruptInput()
+                break
+
+        return inputStr
+
+    def _try_input(self,testStr):
+        inputStr = -1
+        start = time.time()
+        while True:
+            inputStr = input('')
+            print("Read: {}".format(inputStr))
 
             if inputStr != None:
                 self.assertEqual(inputStr, testStr)
                 break
 
             if time.time() - start >= 5:
-                inputStr = inputNonBlocking.interruptInput()
+                inputStr = inputNotBlocked.interruptInput()
                 break
 
         return inputStr
@@ -41,7 +58,7 @@ class inputNonBlockingTest(unittest.TestCase):
         oldstdin = sys.stdin
         sys.stdin = open('test.tst')
 
-        self._try('ceci est un test\n')
+        self._try_inputNotBlocked('ceci est un test\n')
 
         sys.stdin.close()
         sys.stdin = oldstdin
@@ -57,9 +74,9 @@ class inputNonBlockingTest(unittest.TestCase):
         oldstdin = sys.stdin
         sys.stdin = open('test.tst')
 
-        self._try('ceci est un test\n')
+        self._try_inputNotBlocked('ceci est un test\n')
 
-        self._try('ca aussi\n')
+        self._try_inputNotBlocked('ca aussi\n')
 
         sys.stdin.close()
         sys.stdin = oldstdin
@@ -72,12 +89,12 @@ class inputNonBlockingTest(unittest.TestCase):
         fd.write('ca aussi\n')
         fd.close()
 
-        self._try('ceci est un test\n')
+        self._try_inputNotBlocked('ceci est un test\n')
 
         oldstdin = sys.stdin
         sys.stdin = open('test.tst')
 
-        self._try('ca aussi\n')
+        self._try_inputNotBlocked('ca aussi\n')
 
         sys.stdin.close()
         sys.stdin = oldstdin
@@ -93,12 +110,34 @@ class inputNonBlockingTest(unittest.TestCase):
         oldstdin = sys.stdin
         sys.stdin = open('test.tst')
 
-        self._try('ceci est un test\n')
+        self._try_inputNotBlocked('ceci est un test\n')
 
         sys.stdin.close()
         sys.stdin = oldstdin
 
-        self._try('ca aussi\n')
+        self._try_inputNotBlocked('ca aussi\n')
+
+    # =====================================================
+    def test_05_security(self):
+        fd = open('test.tst', 'w')
+        fd.write('__import__(\'os\').system(\'ls\')\n')
+        fd.close()
+
+        oldstdin = sys.stdin
+        sys.stdin = open('test.tst')
+
+        self._try_inputNotBlocked('__import__(\'os\').system(\'ls\')\n')
+
+        sys.stdin.close()
+        sys.stdin = oldstdin
+
+        oldstdin = sys.stdin
+        sys.stdin = open('test.tst')
+
+        self._try_input('__import__(\'os\').system(\'ls\')\n')
+
+        sys.stdin.close()
+        sys.stdin = oldstdin
 
 
 
