@@ -206,7 +206,7 @@ So you need to include it in a loop.
 example:
 ```python
 #import Input and interruptInput
-from inputNonBlocking import  Input,interruptInput,interruptEvent
+from inputNotBlocked import  Input,interruptInput,interruptEvent
 
 def readInput(prompt,timeout=1000):
     startTime = time.time()
@@ -229,7 +229,7 @@ def readInput(prompt,timeout=1000):
 ### manual test ###
 
 You can run:
-```>python inputNonBlocking.py Input "Enter Something: " 10```
+```>python inputNotBlocked.py Input "Enter Something: " 10```
 
 And you can try:
 - enter a sentence before 10sec
@@ -239,9 +239,29 @@ And you can try:
 
 ### automatic test ###
 
-under ../module_tests/lib, you will find test_inputNonBlocking.py
+under ../module_tests/lib, you will find test_inputNotBlocked.py
 
-you can run ```python -m unittest module_tests.lib.test_inputNonBlocking```
+you can run ```python -m unittest module_tests.lib.test_inputNotBlocked```
+
+### security test ###
+
+Under python 2.7 there is a security issue around input and code injection.
+
+input is the result of eval(raw_input(prompt)).
+
+so you can try by hand under python:
+``` 
+>>> n = input('Enter something: ')
+Enter something: __import__('os').system('ls')
+```
+This will list the files of the current directory... Imagine what should happen if we had entered __import__('os').system('rm -rf *')
+
+This will not happen if you use:
+- python 2.7 and ONLY raw_input => but it is blocked
+- python 3.x => but it is blocked
+- python 2.x OR python 3.x and inputNotBlocked
+
+
 
 
 
